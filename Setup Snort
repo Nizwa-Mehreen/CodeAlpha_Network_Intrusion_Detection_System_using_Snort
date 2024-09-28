@@ -1,0 +1,121 @@
+Step 1: Update and upgrade the existing packages
+	sudo apt update && sudo apt upgrade
+
+Step 2: Install snort supporting libraries and tools
+	sudo apt install libdumbnet-dev
+	sudo apt install build-essential libpcap-dev libpcre3-dev zlib1g-dev
+
+Step 3: Install DAQ for packet I/O from snort official website and extract it
+	wget https://www.snort.org/downloads/snort/daq-2.0.7.tar.gz
+	tar -xzvf daq-2.0.7.tar.gz
+
+Step 4: Install flex and bison
+	sudo apt install flex bison
+To check their versions,
+	flex --version
+	bison --version
+
+Step 5: Configure DAQ and Install make
+	cd daq-2.0.7
+	./configure
+	make
+	sudo make install
+	
+Step 6: Download and extract snort from official website
+	cd ..
+	wget https://www.snort.org/downloads/snort/snort-2.9.20.tar.gz
+	tar -xzvf snort-2.9.20.tar.gz
+	cd snort-2.9.20
+	
+Step 7: Check and Install needed Dependencies
+	sudo apt install luajit libluajit-5.1-dev
+	sudo apt install libssl-dev
+	find /usr -name x509.h
+	find /usr -name libssl.so
+	sudo apt install libtirpc-dev
+	dpkg -L libtirpc-dev | grep rpc.h
+	sudo ln -s /usr/include/tirpc /usr/include/rpc
+	./configure --enable-sourcefire
+
+	cd /home/kali/snort-2.9.20
+	make clean
+	./configure
+	make
+	sudo make install
+	
+	export CFLAGS="-I/usr/include/tirpc"
+	export CPPFLAGS="-I/usr/include/tirpc"
+	
+Step 8: Create New Directories for Snort Rules and Log Files
+	sudo mkdir /etc/snort
+	sudo mkdir /etc/snort/rules
+	sudo mkdir /etc/snort/preproc_rules
+	sudo mkdir /var/log/snort
+	sudo mkdir /usr/local/lib/snort_dynamicrules
+	
+Step 9: Extract Snort Rules and Configure 'snort.conf' file
+	sudo tar -xvzf /home/kali/Downloads/community-rules.tar.gz -C /etc/snort/rules/
+	sudo cp /etc/snort/rules/community-rules/snort.conf /etc/snort/snort.conf
+	sudo cp -r /home/kali/snort-2.9.20/preproc_rules /etc/snort/preproc_rules
+	ls -l /etc/snort/preproc_rules/
+	sudo mousepad /etc/snort/snort.conf (To open the 'snort.conf' file, can also use 'vim', 'cat', 'nano' instead of 'mousepad')
+
+Change 'var RULE_PATH /.../rules' to 'var RULE_PATH /etc/snort/rules' (Path to the folder where Rules are present)
+Change 'var SO_RULE_PATH /.../dynamicrules' to 'var SO_RULE_PATH /usr/local/lib/snort_dynamicrules' (Comment the line by '# var...' if not using dynamic rules)
+Change to 'var PREPROC_RULE_PATH /etc/snort/preproc_rules/preproc_rules' (Patht to the folder preproc_rules)
+Add the line 'var SID_MSG_MAP_PATH /etc/snort/sid-msg.map'
+
+Step 10: Create files 'classification.config', 'reference.config' and add contents
+	sudo mousepad /etc/snort/classification.config
+
+# This file defines classifications for Snort alerts.
+# It assigns a name, description, and priority for each classification.
+
+config classification: not-suspicious,Not Suspicious Traffic,3
+config classification: suspicious-traffic,Suspicious Traffic,2
+config classification: unknown,Unknown Traffic,1
+config classification: attempted-admin,Attempted Administrator Privilege Gain,1
+config classification: attempted-user,Attempted User Privilege Gain,1
+config classification: shellcode-detect,Executable Code was Detected,1
+config classification: trojan-activity,A Network Trojan was Detected,1
+config classification: misc-activity,Miscellaneous Activity,3
+config classification: misc-attack,Miscellaneous Attack,2
+config classification: icmp-event,Generic ICMP event,3
+config classification: bad-unknown,Potentially Bad Traffic,2
+config classification: tcp-connection,Generic TCP event,4
+config classification: attempted-recon,Attempted Information Leak,2
+config classification: successful-recon-limited,Information Leak,2
+config classification: successful-recon-largescale,Large Scale Information Leak,2
+config classification: denial-of-service,Denial of Service Attack,2
+config classification: non-standard-protocol,Detection of a Non-Standard Protocol or Event,2
+config classification: protocol-command-decode,Generic Protocol Command Decode,3
+config classification: web-application-activity,access to a potentially vulnerable web application,2
+config classification: web-application-attack,Web Application Attack,1
+config classification: exploit-attempt,Attempted Exploit,1
+
+	sudo chmod 644 /etc/snort/classification.config
+	sudo nano /etc/snort/reference.config
+
+# This file defines references for Snort alerts.
+# It links alert messages to external sources like CVE or Bugtraq.
+
+config reference: bugtraq http://www.securityfocus.com/bid/
+config reference: cve http://cve.mitre.org/cgi-bin/cvename.cgi?name=
+config reference: arachNIDS http://www.whitehats.com/info/IDS
+config reference: mcafee http://vil.nai.com/vil/content/v_
+config reference: url http://
+
+	sudo chmod 644 /etc/snort/reference.config
+
+Step 11: Create your own rules
+	sudo mousepad /etc/snort/rules/local.rules
+
+Eg: alert icmp any any -> any any (msg:"ICMP Packet Detected"; sid:1000001; rev:1;)
+	
+	sudo chmod 644 /etc/snort/rules/local.rules
+
+Step 12: Comment the rules which aren't being used in 'snort.conf'
+
+Step 13: If using blacklist and whitelist for the IP addresses, add its path below 'var PREPROC_RULE_PATH /etc/snort/preproc_rules/preproc_rules'
+
+Step 14: Make sure the path to the rules you are using is in 'snort.conf' file

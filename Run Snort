@@ -1,0 +1,21 @@
+1. Test Run for Snort Configuration:
+	sudo snort -T -c /etc/snort/snort.conf -i  network_interface_name
+Here '/etc/snort/snort.conf' is the path to 'snort.conf' file
+
+2. To Run Snort in Passive mode:
+	snort -c /etc/snort/snort.conf -i network_interface_name
+
+3. To Run Snort in IDS mode and monitor your Network Traffic in Real-Time:
+	sudo snort -A console -q -c /etc/snort/snort.conf -i network_interface_name
+
+    -A console: Shows alerts in the console.
+    -q: Quiet mode, minimizing output to just alerts.
+    -i network_interface_name: Specifies the network interface to monitor.
+    
+if you want to check for the errors or warnings, remove -q
+
+4. To Run in Daemon mode (in Background)
+	snort -D -c /etc/snort/snort.conf -i eth0
+
+5. To Log Alert to a file:
+	snort -l /var/log/snort -c /etc/snort/snort.conf -i network_interface_name
