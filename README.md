@@ -10,3 +10,5 @@ local.rules: Custom rules specifically designed to detect ICMP traffic, such as 
 Setup Snort.txt: A guide on how to install and set up Snort on your system.
 
 Run Snort.txt: Instructions on how to run Snort and direct its alerts to log files for analysis.
+
+It demonstrates how to configure Snort to passively monitor network traffic and generate alerts based on custom-defined rules. Logs and alerts are saved in the /var/log/snort/ directory by default.
